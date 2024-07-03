@@ -13,6 +13,14 @@ public static class Constants {
 	public static readonly string PluginVersion;
 	public static readonly string PluginNamespace = PluginName.Replace(" ", "");
 
+	public static readonly DateTime LatestPluginUpdate = DateTime.Parse("2024-07-01T00:00:00Z");
+	public static readonly IList<string> PluginUpdates = new string[] {
+		"updated to run on 7.0 Dawntrail.",
+		"added support for 7.0 hunt marks.",
+		"added an update notice popup (you're looking at it :P).",
+		"added a notice mechanism on the main ui, to alert users to persistent important issues.",
+	}.AsList();
+
 	#endregion
 
 	#region core constants
@@ -20,7 +28,14 @@ public static class Constants {
 	public const string DefaultCopyTemplate = "{patch-emote} {patch} {#}/{#max} {world} [{tracker}]({link})";
 	public const string BearDataFile = @"Data\Bear.json";
 	public const string SirenDataFile = @"Data\Siren.json";
+	
+	#endregion
+	
+	#region patch update constants
 
+	public static readonly IList<string> Notices = new string[] {
+		// "Dawntrail regions are not yet supported.",
+	}.AsList();
 	public static readonly DateTime LatestPatchUpdate = DateTime.Parse("2024-01-01T00:00:00Z");
 	public static readonly (Territory, uint)[] LatestPatchInstances = {};
 

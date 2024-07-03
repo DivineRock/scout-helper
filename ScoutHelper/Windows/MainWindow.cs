@@ -6,6 +6,7 @@ using CSharpFunctionalExtensions;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
+using Dalamud.Utility.Numerics;
 using ImGuiNET;
 using ScoutHelper.Config;
 using ScoutHelper.Localization;
@@ -27,6 +28,8 @@ public class MainWindow : Window, IDisposable {
 	private readonly ConfigWindow _configWindow;
 
 	private readonly Lazy<Vector2> _buttonSize;
+	private readonly IList<string> _notices;
+	private readonly float _noticeFrameHeight;
 
 	private bool _isCopyModeFullText;
 	private uint _selectedMode;
@@ -62,10 +65,10 @@ public class MainWindow : Window, IDisposable {
 		_buttonSize = new Lazy<Vector2>(
 			() => {
 				var buttonSize = new[] {
-						new[] { Strings.BearButton },
-						new[] { Strings.SirenButton },
-						new[] { Strings.PrimeButton },
-						new[] { Strings.CopyModeLinkButton, Strings.CopyModeFullTextButton, },
+						[Strings.BearButton],
+						[Strings.SirenButton],
+						[Strings.PrimeButton],
+						new[] { Strings.CopyModeLinkButton, Strings.CopyModeFullTextButton },
 					}
 					.Select(
 						labels => labels
@@ -77,6 +80,18 @@ public class MainWindow : Window, IDisposable {
 				return buttonSize;
 			}
 		);
+
+		_notices = Constants.Notices
+			.Select(notice => "· " + notice)
+			.AsList();
+
+		var noticeWrapWidth = _buttonSize.Value.X - ImGui.GetStyle().WindowPadding.X * 2;
+		_noticeFrameHeight = ImGui.GetStyle().WindowPadding.Y * 2 + ImGui.CalcTextSize(
+			_notices
+				.Append("NOTICES")
+				.Join("\n"),
+			noticeWrapWidth
+		).Y;
 	}
 
 	public void Dispose() {
@@ -87,13 +102,38 @@ public class MainWindow : Window, IDisposable {
 	}
 
 	public override void Draw() {
+		DrawNotices();
+
 		DrawModeButtons();
 
-		ImGui.Dummy(new Vector2(0, ImGui.GetStyle().FramePadding.Y));
-		ImGui.Separator();
-		ImGui.Dummy(new Vector2(0, ImGui.GetStyle().FramePadding.Y));
+		ImGuiPlus.Separator();
 
 		DrawGeneratorButtons();
+	}
+
+	private void DrawNotices() {
+		if (Constants.Notices.IsEmpty())
+			return;
+
+		try {
+			ImGui.PushStyleColor(ImGuiCol.FrameBg, new Vector4(.7f, .0f, .2f, 1f));
+			ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1f, 1f, 1f, 1f));
+
+			var startedChildFrame = ImGui.BeginChildFrame(
+				ImGui.GetID("notice panel"),
+				_buttonSize.Value.WithY(_noticeFrameHeight),
+				ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse | ImGuiWindowFlags.AlwaysAutoResize
+			);
+			if (!startedChildFrame) return;
+
+			ImGuiHelpers.CenteredText("NOTICES");
+			_notices.ForEach(ImGui.TextWrapped);
+		} finally {
+			ImGui.PopStyleColor(2);
+		}
+		ImGui.EndChildFrame();
+
+		ImGuiPlus.Separator();
 	}
 
 	private void DrawModeButtons() {
